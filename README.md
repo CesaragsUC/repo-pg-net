@@ -22,7 +22,42 @@ Usando o NuGet Package Manager:
   }
 }
 ```
+Configurando DbContext:
 
+```csharp
+using Microsoft.EntityFrameworkCore;
+
+namespace YourNamespace
+{
+    public class ProductPgDbContext : DbContext
+    {
+        public ProductPgDbContext(DbContextOptions<ProductPgDbContext> options) : base(options) { }
+
+        // Adicione os DbSets de suas entidades
+        public DbSet<Product> Products { get; set; }
+    }
+}
+
+```
+No seu Program.cs:
+
+```csharp
+
+using Microsoft.EntityFrameworkCore;
+using YourNamespace;
+
+var builder = WebApplication.CreateBuilder(args);
+
+// Configurando o DbContext
+builder.Services.AddDbContext<ProductPgDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("PostgresConnection")));
+
+// Registrando o repositório
+builder.Services.AddScoped(typeof(IPgRepository<>), typeof(PgRepository<>));
+
+var app = builder.Build();
+
+```
 🎯 Uso
 
 Criando uma Entidade
@@ -44,7 +79,7 @@ Exemplo de uso do repositório genérico no Controller:
 ```csharp
 public class ProductsController : ControllerBase
 {
-    private readonly IRepository<Product> _repository;
+    private readonly IPgRepository<Product> _repository;
 
     public ProductsController(IRepository<Product> repository)
     {
@@ -94,11 +129,11 @@ Pode ser usado com qualquer classe de entidade que tenha um identificador.
 
 Interfaces:
 
-``` IRepository<T>: Interface do repositório genérico. ```
+``` IPgRepository<T>: Interface do repositório genérico. ```
   
 Implementações:
 
-``` Repository<T>: Implementação concreta para PostgreSQL.```
+``` PgRepository<T>: Implementação concreta para PostgreSQL.```
 
 🤝 Contribuição
 Contribuições são bem-vindas!
