@@ -12,25 +12,25 @@ public class PgRepository<TEntity> : IPgRepository<TEntity> where TEntity : clas
         _context = context;
     }
 
-    public async Task Add(TEntity entity)
+    public async Task AddAsync(TEntity entity)
     {
         _context.Set<TEntity>().Add(entity);
         await _context.SaveChangesAsync();
     }
 
-    public async Task Add(IEnumerable<TEntity> entities)
+    public async Task AddAsync(IEnumerable<TEntity> entities)
     {
         _context.Set<TEntity>().AddRange(entities);
         await _context.SaveChangesAsync();
     }
 
-    public async Task Delete(TEntity entity)
+    public async Task DeleteAsync(TEntity entity)
     {
         _context.Set<TEntity>().Remove(entity);
         await _context.SaveChangesAsync();
     }
 
-    public async Task Delete(Expression<Func<TEntity, bool>> predicate)
+    public async Task DeleteAsync(Expression<Func<TEntity, bool>> predicate)
     {
         var entities = Find(predicate);
         _context.Set<TEntity>().RemoveRange(entities);
@@ -47,12 +47,12 @@ public class PgRepository<TEntity> : IPgRepository<TEntity> where TEntity : clas
         return Get(findOptions).Where(predicate);
     }
 
-    public IQueryable<TEntity> GetAll(FindOptions? findOptions = null)
+    public IQueryable<TEntity> GetAllEntities(FindOptions? findOptions = null)
     {
         return Get(findOptions);
     }
 
-    public async Task Update(TEntity entity)
+    public async Task UpdateAsync(TEntity entity)
     {
         _context.Set<TEntity>().Update(entity);
         await _context.SaveChangesAsync();
