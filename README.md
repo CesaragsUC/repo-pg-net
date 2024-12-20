@@ -48,12 +48,8 @@ using YourNamespace;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configurando o DbContext
-builder.Services.AddDbContext<ProductPgDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("PostgresConnection")));
-
-// Registrando o repositório
-builder.Services.AddScoped(typeof(IPgRepository<>), typeof(PgRepository<>));
+// Registrando o repositório e Configura o DbContext
+builder.Services.AddRepoPgNet<ProductPgDbContext>(builder.Configuration);
 
 var app = builder.Build();
 
