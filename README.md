@@ -12,7 +12,7 @@ Com ele, você pode simplificar o acesso a dados usando boas práticas, abstrain
 Você pode instalar o pacote através do NuGet Package Manager ou da CLI:
 
 Usando o NuGet Package Manager:
-<pre> Install-Package SeuPackageName </pre>
+<pre> Install-Package RepoPgNet </pre>
 
 🛠️ Configuração
 ```json
