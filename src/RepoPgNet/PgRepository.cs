@@ -47,10 +47,43 @@ public class PgRepository<TEntity> : IPgRepository<TEntity> where TEntity : clas
         return Get(findOptions).Where(predicate);
     }
 
-    public IQueryable<TEntity> GetAllEntities(FindOptions? findOptions = null)
+    public async Task<TEntity> FindAsync(Expression<Func<TEntity, bool>> predicate)
+    {
+        if (predicate == null) throw new ArgumentNullException(nameof(predicate));
+
+        var result = await _context.Set<TEntity>().Where(predicate).FirstOrDefaultAsync();
+
+        if (result == null)
+        {
+            Console.WriteLine($"Nenhuma entidade encontrada para o predicado: {predicate}");
+        }
+
+        return result!;
+    }
+
+    public IEnumerable<TEntity> GetAll(Expression<Func<TEntity, bool>> predicate, FindOptions? findOptions = null)
+    {
+        return Get(findOptions).Where(predicate);
+    }
+
+    public IQueryable<TEntity> GetAll(FindOptions? findOptions = null)
     {
         return Get(findOptions);
     }
+
+    public async Task<IEnumerable<TEntity>> GetAllAsync(int pageNumber, int pageSize)
+    {
+        return await _context.Set<TEntity>()
+                             .Skip((pageNumber - 1) * pageSize)
+                             .Take(pageSize)
+                             .ToListAsync();
+    }
+
+    public async Task<IEnumerable<TEntity>> GetAllAsync()
+    {
+       return await _context.Set<TEntity>().ToListAsync();
+    }
+
 
     public async Task UpdateAsync(TEntity entity)
     {

@@ -13,7 +13,17 @@ Com ele, você pode simplificar o acesso a dados usando boas práticas, abstrain
     <PackageProjectUrl>https://github.com/CesaragsUC/repo-pg-net</PackageProjectUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/CesaragsUC/repo-pg-net</RepositoryUrl>
-    <Version>1.1.0</Version>
+    <Version>1.1.1</Version>
+    <PackageReleaseNotes>Refatorar IPgRepository e atualizar as configurações do projeto
+
+Renomeado GetAll para GetAllEntities em IPgRepository.
+Substituição de métodos sync por equivalentes assíncronos em IPgRepository.
+Atualização de PackageId e Title em RepoPgNet.csproj para RepoPgNet.
+Adicionada propriedade Version (1.1.0) para RepoPgNet.csproj.
+Movido conteúdo de Repository.cs para novo arquivo PgRepository.cs.
+Atualização de classe PgRepository para usar métodos assíncronos.
+Adicionado método de extensão AddRepoPgNet para registro DI.
+Configuração de AddRepoPgNet para usar string de conexão PostgreSQL.</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
