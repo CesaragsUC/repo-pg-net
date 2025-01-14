@@ -1,28 +1,32 @@
-# 📦 PGNet a PostgreSQL Repository for .NET
 
-Um repositório genérico com implementações completas para PostgreSQL usando .NET
+# 📦 PGNet - A PostgreSQL Repository for .NET
 
-✨ Descrição
+A generic repository with complete implementations for PostgreSQL using .NET.
 
-Este pacote oferece uma implementação completa de um repositório genérico para aplicações .NET com PostgreSQL, facilitando a criação, leitura, atualização e remoção (CRUD) de entidades no banco de dados.
+✨ Description
 
-Com ele, você pode simplificar o acesso a dados usando boas práticas, abstraindo a camada de repositório e deixando sua aplicação mais limpa e desacoplada.
+This package provides a complete implementation of a generic repository for .NET applications with PostgreSQL, facilitating Create, Read, Update, and Delete (CRUD) operations for entities in the database.
 
-🚀 Instalação
-Você pode instalar o pacote através do NuGet Package Manager ou da CLI:
+With it, you can simplify data access using best practices, abstracting the repository layer and making your application cleaner and more decoupled.
 
-Usando o NuGet Package Manager:
+🚀 Installation
+
+You can install the package via NuGet Package Manager or the CLI:
+
+Using NuGet Package Manager:
 <pre> Install-Package RepoPgNet </pre>
 
-🛠️ Configuração
+🛠️ Configuration
+
 ```json
 {
   "ConnectionStrings": {
-    "PostgresConnection": "Host=localhost;Database=seuDB;Username=postgres;Password=suasenha;"
+    "PostgresConnection": "Host=localhost;Database=yourDB;Username=postgres;Password=yourpassword;"
   }
 }
 ```
-Configurando DbContext:
+
+Configuring the DbContext:
 
 ```csharp
 using Microsoft.EntityFrameworkCore;
@@ -33,32 +37,31 @@ namespace YourNamespace
     {
         public ProductPgDbContext(DbContextOptions<ProductPgDbContext> options) : base(options) { }
 
-        // Adicione os DbSets de suas entidades
+        // Add DbSets for your entities
         public DbSet<Product> Products { get; set; }
     }
 }
-
 ```
-No seu Program.cs:
+
+In your Program.cs:
 
 ```csharp
-
 using Microsoft.EntityFrameworkCore;
 using YourNamespace;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Registrando o repositório e Configura o DbContext
+// Registering the repository and configuring the DbContext
 builder.Services.AddRepoPgNet<ProductPgDbContext>(builder.Configuration);
 
 var app = builder.Build();
-
 ```
-🎯 Uso
 
-Criando uma Entidade
+🎯 Usage
 
-Defina uma entidade no seu projeto:
+Creating an Entity
+
+Define an entity in your project:
 ```csharp
 public class Product
 {
@@ -66,18 +69,18 @@ public class Product
     public string Name { get; set; }
     public decimal Price { get; set; }
 }
-
 ```
-Usando o Repositório
 
-Exemplo de uso do repositório genérico no Controller:
+Using the Repository
+
+Example of using the generic repository in a Controller:
 
 ```csharp
 public class ProductsController : ControllerBase
 {
     private readonly IPgRepository<Product> _repository;
 
-    public ProductsController(IRepository<Product> repository)
+    public ProductsController(IPgRepository<Product> repository)
     {
         _repository = repository;
     }
@@ -86,7 +89,7 @@ public class ProductsController : ControllerBase
     public async Task<IActionResult> Create(Product product)
     {
         await _repository.AddAsync(product);
-        return Ok("Produto criado com sucesso!");
+        return Ok("Product successfully created!");
     }
 
     [HttpGet]
@@ -96,50 +99,52 @@ public class ProductsController : ControllerBase
         return Ok(products);
     }
 }
-
 ```
 
+⚙️ Features
 
-⚙️ Funcionalidades
+Full CRUD:
 
-CRUD Completo:
+* AddAsync(entity) - Adds a new entity.
+* GetByIdAsync(id) - Retrieves an entity by ID.
+* GetAllAsync() - Retrieves all entities.
+* UpdateAsync(entity) - Updates an existing entity.
+* DeleteAsync(id) - Removes an entity by ID.
+* And much more..
 
-* AddAsync(entity) - Adiciona uma nova entidade.
-* GetByIdAsync(id) - Retorna uma entidade pelo ID.
-* GetAllAsync() - Retorna todas as entidades.
-* UpdateAsync(entity) - Atualiza uma entidade existente.
-* DeleteAsync(id) - Remove uma entidade pelo ID.
-* Performance:
+Performance:
 
-Uso eficiente de conexões com o banco de dados PostgreSQL.
-Genérico:
+Efficient use of PostgreSQL database connections.
 
-Pode ser usado com qualquer classe de entidade que tenha um identificador.
+Generic:
 
-🧩 Requisitos
+Can be used with any entity class that has an identifier.
 
-* .NET 6 ou superior
+🧩 Requirements
+
+* .NET 6+
 * PostgreSQL 12+
 
-🗂️ Estrutura do Pacote
+🗂️ Package Structure
 
 Interfaces:
 
-``` IPgRepository<T>: Interface do repositório genérico. ```
-  
-Implementações:
+``` IPgRepository<T>: Generic repository interface. ```
 
-``` PgRepository<T>: Implementação concreta para PostgreSQL.```
+Implementations:
 
-🤝 Contribuição
-Contribuições são bem-vindas!
+``` PgRepository<T>: Concrete implementation for PostgreSQL. ```
 
-* Faça um fork do repositório.
-* Crie uma branch para sua feature (git checkout -b feature/NovaFeature).
-* Commit suas mudanças (git commit -m "Adicionei uma nova feature X").
-* Faça um push para a branch (git push origin feature/NovaFeature).
-* Abra um Pull Request.
+🤝 Contribution
 
-⭐ Dê uma estrela!
+Contributions are welcome!
 
-Se você achou este pacote útil, não se esqueça de dar uma ⭐ no GitHub!
+* Fork the repository.
+* Create a branch for your feature (git checkout -b feature/NewFeature).
+* Commit your changes (git commit -m "Added a new feature X").
+* Push to the branch (git push origin feature/NewFeature).
+* Open a Pull Request.
+
+⭐ Give it a Star!
+
+If you found this package useful, don't forget to give it a ⭐ on GitHub!
