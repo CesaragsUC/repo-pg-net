@@ -1,28 +1,45 @@
-# 📦 PGNet a PostgreSQL Repository for .NET
 
-Um repositório genérico com implementações completas para PostgreSQL usando .NET
+# 📦 PGNet - A PostgreSQL Repository for .NET  
+A generic repository with a **Unit of Work** pattern and domain event handling for PostgreSQL using .NET.
 
-✨ Descrição
+## ✨ Description  
 
-Este pacote oferece uma implementação completa de um repositório genérico para aplicações .NET com PostgreSQL, facilitando a criação, leitura, atualização e remoção (CRUD) de entidades no banco de dados.
+**PGNet** is a robust and extensible repository implementation for .NET applications using **PostgreSQL**. It simplifies **Create, Read, Update, and Delete (CRUD)** operations while maintaining a **clean architecture** through the **Unit of Work (UoW) pattern** and **Domain Events**.
 
-Com ele, você pode simplificar o acesso a dados usando boas práticas, abstraindo a camada de repositório e deixando sua aplicação mais limpa e desacoplada.
+With this package, you can:  
+- Abstract the data access layer using the **Repository Pattern**.  
+- Manage transactions efficiently with **Unit of Work**.  
+- Automatically dispatch **Domain Events** on entity changes (e.g., create, update, delete).  
+- Keep your code **clean, decoupled, and scalable**.  
 
-🚀 Instalação
-Você pode instalar o pacote através do NuGet Package Manager ou da CLI:
+This approach enhances **maintainability** and **testability**, following best practices in **DDD (Domain-Driven Design)**.  
 
-Usando o NuGet Package Manager:
+## 🚀 Installation  
+
+You can install the package via NuGet Package Manager or the CLI:  
+
+```sh
+dotnet add package PGNet
+
+
+🚀 Installation
+
+You can install the package via NuGet Package Manager or the CLI:
+
+Using NuGet Package Manager:
 <pre> Install-Package RepoPgNet </pre>
 
-🛠️ Configuração
+🛠️ Configuration
+
 ```json
 {
   "ConnectionStrings": {
-    "PostgresConnection": "Host=localhost;Database=seuDB;Username=postgres;Password=suasenha;"
+    "PostgresConnection": "Host=localhost;Database=yourDB;Username=postgres;Password=yourpassword;"
   }
 }
 ```
-Configurando DbContext:
+
+Configuring the DbContext:
 
 ```csharp
 using Microsoft.EntityFrameworkCore;
@@ -33,113 +50,240 @@ namespace YourNamespace
     {
         public ProductPgDbContext(DbContextOptions<ProductPgDbContext> options) : base(options) { }
 
-        // Adicione os DbSets de suas entidades
+        // Add DbSets for your entities
         public DbSet<Product> Products { get; set; }
     }
 }
-
 ```
-No seu Program.cs:
+
+In your Program.cs:
 
 ```csharp
-
 using Microsoft.EntityFrameworkCore;
 using YourNamespace;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Registrando o repositório e Configura o DbContext
+// Registering the repository and configuring the DbContext
 builder.Services.AddRepoPgNet<ProductPgDbContext>(builder.Configuration);
 
+services.AddMediatR(cfg => {
+ //Register MediatR handlers
+ cfg.RegisterServicesFromAssemblies(Assembly.GetExecutingAssembly());
+});
+
 var app = builder.Build();
-
 ```
-🎯 Uso
 
-Criando uma Entidade
+🎯 Usage
 
-Defina uma entidade no seu projeto:
+Creating an Entity
+
+Define an entity in your project, this entity inherit BaseEntity that is a base class wich contains all domain events implementantion:
 ```csharp
-public class Product
+public class Product : BaseEntity
 {
-    public int Id { get; set; }
-    public string Name { get; set; }
+    public string? Name { get; set; }
+
     public decimal Price { get; set; }
+
+    public bool Active { get; set; }
+
+    public string? ImageUri { get; set; }
 }
 
 ```
-Usando o Repositório
 
-Exemplo de uso do repositório genérico no Controller:
+Using the Repository
+
+Example of using the generic repository in a Controller:
 
 ```csharp
-public class ProductsController : ControllerBase
+public class ProductService : IProductService
 {
-    private readonly IPgRepository<Product> _repository;
-
-    public ProductsController(IRepository<Product> repository)
+    private readonly IUnitOfWork<ProductContext> _unitOfWork;
+    private readonly IProductRepository _productRepository;
+    private readonly IMapper _mapper;
+    public ProductService(IUnitOfWork<ProductContext> unitOfWork,
+        IMapper mapper,
+        IProductRepository productRepository)
     {
-        _repository = repository;
+        _unitOfWork = unitOfWork;
+        _mapper = mapper;
+        _productRepository = productRepository;
     }
 
-    [HttpPost]
-    public async Task<IActionResult> Create(Product product)
+    public async Task<IEnumerable<ProductDto>> GetAll()
     {
-        await _repository.AddAsync(product);
-        return Ok("Produto criado com sucesso!");
+        return  await _unitOfWork.Repository<Product>()
+            .Entities.ProjectTo<ProductDto>(_mapper.ConfigurationProvider).ToListAsync();
+
     }
 
-    [HttpGet]
-    public async Task<IActionResult> GetAll()
+    public async Task<ProductDto> Get(Guid id)
     {
-        var products = await _repository.GetAllAsync();
-        return Ok(products);
+        var product = _unitOfWork.Repository<Product>().FindOne(x => x.Id == id);
+        return _mapper.Map<ProductDto>(product);
+    }
+
+    public async Task<ProductDto> GetByName(string name)
+    {
+        return await _productRepository.GetByName(name);
+    }
+
+    public async Task Add(ProductCreateDto productDto)
+    {
+        var product = _mapper.Map<Product>(productDto);
+        await _unitOfWork.Repository<Product>().AddAsync(product);
+
+        // send a event
+        product.AddDomainEvent(new ProductCreatedEvent(product));
+
+        var resul = await _unitOfWork.Commit();
+    }
+
+    public async Task Delete(Guid id)
+    {
+        var product = _unitOfWork.Repository<Product>().FindOne(x => x.Id == id);
+
+        if (product is null)
+            throw new Exception("Product not found");
+
+        _unitOfWork.Repository<Product>().DeleteAsync(product);
+        await _unitOfWork.Commit();
+    }
+
+    public async Task Update(ProductUpdateDto productDto)
+    {
+        var product = _unitOfWork.Repository<Product>().FindOne(x => x.Id == productDto.Id);
+
+        if (product is null)
+            throw new Exception("Product not found");
+
+        product.Name = productDto.Name;
+        product.Price = productDto.Price;
+        product.Active = productDto.Active;
+        product.ImageUri = productDto.ImageUri;
+
+        _unitOfWork.Repository<Product>().UpdateAsync(product);
+        await _unitOfWork.Commit();
     }
 }
 
 ```
+Assuming that you have MediatR installed in your project, you can create your Handler. Here a example after i've create a Product
+
+```csharp
+public class ProductCreatedEvent : BaseEvent
+{
+    public Product Product { get;}
+    public ProductCreatedEvent(Product product)
+    {
+        Product = product;
+    }
+}
+
+public class ProductCreatedEventHandler : INotificationHandler<ProductCreatedEvent>
+{
+    public async Task Handle(ProductCreatedEvent notification, CancellationToken cancellationToken)
+    {
+        Console.WriteLine($"Product {notification.Product.Name} created at {DateTime.Now}");
+
+        await Task.CompletedTask;
+    }
+}
+```
+
+Performance:
+
+Efficient use of PostgreSQL database connections.
+
+Generic:
+
+Can be used with any entity class that has an identifier.
+
+🧩 Requirements
+
+* .NET 6+
+
+🗂️ Package Structure
+
+## Repository Interface (`IRepository<TEntity>`)
+
+This interface provides an abstraction for a generic repository pattern, allowing operations on any entity type. Below is a description of each available method:
+
+### 🔍 Querying Entities
+- **`IQueryable<TEntity> Entities`**  
+  Gets the entities of the repository. Can be used with AutoMapper's `ProjectTo` for projections.
+
+- **`IQueryable<TEntity> GetAll(FindOptions? findOptions = null)`**  
+  Retrieves all entities with optional find options.
+
+- **`IEnumerable<TEntity> GetAll(Expression<Func<TEntity, bool>> predicate, FindOptions? findOptions = null)`**  
+  Retrieves all entities that match the specified predicate with optional find options.
+
+- **`IQueryable<TEntity> Find(Expression<Func<TEntity, bool>> predicate, FindOptions? findOptions = null)`**  
+  Finds all entities that match the specified predicate with optional find options.
+
+- **`TEntity FindOne(Expression<Func<TEntity, bool>> predicate, FindOptions? findOptions = null)`**  
+  Finds a single entity that matches the specified predicate with optional find options.
+
+### ⏳ Asynchronous Queries
+- **`Task<IEnumerable<TEntity>> GetAllAsync(int pageNumber, int pageSize)`**  
+  Retrieves a paginated list of entities asynchronously.
+
+- **`Task<IEnumerable<TEntity>> GetAllAsync(int pageNumber, int pageSize, params Expression<Func<TEntity, object>>[] includes)`**  
+  Retrieves a paginated list of entities asynchronously, with optional includes.
+
+- **`Task<IEnumerable<TEntity>> GetAllAsync(params Expression<Func<TEntity, object>>[] includes)`**  
+  Retrieves a list of entities asynchronously, with optional includes.
+
+- **`Task<IEnumerable<TEntity>> GetAllAsync()`**  
+  Retrieves all entities asynchronously.
+
+- **`Task<TEntity> FindAsync(Expression<Func<TEntity, bool>> predicate)`**  
+  Finds a single entity asynchronously that matches the specified predicate.
+
+### 📌 Adding Entities
+- **`Task AddAsync(TEntity entity)`**  
+  Adds a single entity to the repository asynchronously.
+
+- **`Task AddAsync(IEnumerable<TEntity> entities)`**  
+  Adds multiple entities to the repository asynchronously.
+
+### ✏️ Updating Entities
+- **`void UpdateAsync(TEntity entity)`**  
+  Updates an existing entity in the repository asynchronously.
+
+### 🗑️ Deleting Entities
+- **`void DeleteAsync(TEntity entity)`**  
+  Deletes a single entity from the repository asynchronously.
+
+- **`void DeleteAsync(Expression<Func<TEntity, bool>> predicate)`**  
+  Deletes entities that match the specified predicate asynchronously.
+
+### 🔢 Utility Methods
+- **`bool Any(Expression<Func<TEntity, bool>> predicate)`**  
+  Checks if any entities match the specified predicate.
+
+- **`int Count(Expression<Func<TEntity, bool>> predicate)`**  
+  Counts the number of entities that match the specified predicate.
+
+---
+
+This repository abstraction helps simplify database operations by providing a structured way to interact with entity data.
 
 
-⚙️ Funcionalidades
+🤝 Contribution
 
-CRUD Completo:
+Contributions are welcome!
 
-* AddAsync(entity) - Adiciona uma nova entidade.
-* GetByIdAsync(id) - Retorna uma entidade pelo ID.
-* GetAllAsync() - Retorna todas as entidades.
-* UpdateAsync(entity) - Atualiza uma entidade existente.
-* DeleteAsync(id) - Remove uma entidade pelo ID.
-* Performance:
+* Fork the repository.
+* Create a branch for your feature (git checkout -b feature/NewFeature).
+* Commit your changes (git commit -m "Added a new feature X").
+* Push to the branch (git push origin feature/NewFeature).
+* Open a Pull Request.
 
-Uso eficiente de conexões com o banco de dados PostgreSQL.
-Genérico:
+⭐ Give it a Star!
 
-Pode ser usado com qualquer classe de entidade que tenha um identificador.
-
-🧩 Requisitos
-
-* .NET 6 ou superior
-* PostgreSQL 12+
-
-🗂️ Estrutura do Pacote
-
-Interfaces:
-
-``` IPgRepository<T>: Interface do repositório genérico. ```
-  
-Implementações:
-
-``` PgRepository<T>: Implementação concreta para PostgreSQL.```
-
-🤝 Contribuição
-Contribuições são bem-vindas!
-
-* Faça um fork do repositório.
-* Crie uma branch para sua feature (git checkout -b feature/NovaFeature).
-* Commit suas mudanças (git commit -m "Adicionei uma nova feature X").
-* Faça um push para a branch (git push origin feature/NovaFeature).
-* Abra um Pull Request.
-
-⭐ Dê uma estrela!
-
-Se você achou este pacote útil, não se esqueça de dar uma ⭐ no GitHub!
+If you found this package useful, don't forget to give it a ⭐ on GitHub!
