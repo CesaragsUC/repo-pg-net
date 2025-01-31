@@ -1,13 +1,26 @@
 
-# 📦 PGNet - A PostgreSQL Repository for .NET
+# 📦 PGNet - A PostgreSQL Repository for .NET  
+A generic repository with a **Unit of Work** pattern and domain event handling for PostgreSQL using .NET.
 
-A generic repository with complete implementations for PostgreSQL using .NET.
+## ✨ Description  
 
-✨ Description
+**PGNet** is a robust and extensible repository implementation for .NET applications using **PostgreSQL**. It simplifies **Create, Read, Update, and Delete (CRUD)** operations while maintaining a **clean architecture** through the **Unit of Work (UoW) pattern** and **Domain Events**.
 
-This package provides a complete implementation of a generic repository for .NET applications with PostgreSQL, facilitating Create, Read, Update, and Delete (CRUD) operations for entities in the database.
+With this package, you can:  
+- Abstract the data access layer using the **Repository Pattern**.  
+- Manage transactions efficiently with **Unit of Work**.  
+- Automatically dispatch **Domain Events** on entity changes (e.g., create, update, delete).  
+- Keep your code **clean, decoupled, and scalable**.  
 
-With it, you can simplify data access using best practices, abstracting the repository layer and making your application cleaner and more decoupled.
+This approach enhances **maintainability** and **testability**, following best practices in **DDD (Domain-Driven Design)**.  
+
+## 🚀 Installation  
+
+You can install the package via NuGet Package Manager or the CLI:  
+
+```sh
+dotnet add package PGNet
+
 
 🚀 Installation
 
@@ -54,6 +67,11 @@ var builder = WebApplication.CreateBuilder(args);
 // Registering the repository and configuring the DbContext
 builder.Services.AddRepoPgNet<ProductPgDbContext>(builder.Configuration);
 
+services.AddMediatR(cfg => {
+ //Register MediatR handlers
+ cfg.RegisterServicesFromAssemblies(Assembly.GetExecutingAssembly());
+});
+
 var app = builder.Build();
 ```
 
@@ -61,14 +79,19 @@ var app = builder.Build();
 
 Creating an Entity
 
-Define an entity in your project:
+Define an entity in your project, this entity inherit BaseEntity that is a base class wich contains all domain events implementantion:
 ```csharp
-public class Product
+public class Product : BaseEntity
 {
-    public int Id { get; set; }
-    public string Name { get; set; }
+    public string? Name { get; set; }
+
     public decimal Price { get; set; }
+
+    public bool Active { get; set; }
+
+    public string? ImageUri { get; set; }
 }
+
 ```
 
 Using the Repository
@@ -76,41 +99,100 @@ Using the Repository
 Example of using the generic repository in a Controller:
 
 ```csharp
-public class ProductsController : ControllerBase
+public class ProductService : IProductService
 {
-    private readonly IPgRepository<Product> _repository;
-
-    public ProductsController(IPgRepository<Product> repository)
+    private readonly IUnitOfWork<ProductContext> _unitOfWork;
+    private readonly IProductRepository _productRepository;
+    private readonly IMapper _mapper;
+    public ProductService(IUnitOfWork<ProductContext> unitOfWork,
+        IMapper mapper,
+        IProductRepository productRepository)
     {
-        _repository = repository;
+        _unitOfWork = unitOfWork;
+        _mapper = mapper;
+        _productRepository = productRepository;
     }
 
-    [HttpPost]
-    public async Task<IActionResult> Create(Product product)
+    public async Task<IEnumerable<ProductDto>> GetAll()
     {
-        await _repository.AddAsync(product);
-        return Ok("Product successfully created!");
+        return  await _unitOfWork.Repository<Product>()
+            .Entities.ProjectTo<ProductDto>(_mapper.ConfigurationProvider).ToListAsync();
+
     }
 
-    [HttpGet]
-    public async Task<IActionResult> GetAll()
+    public async Task<ProductDto> Get(Guid id)
     {
-        var products = await _repository.GetAllAsync();
-        return Ok(products);
+        var product = _unitOfWork.Repository<Product>().FindOne(x => x.Id == id);
+        return _mapper.Map<ProductDto>(product);
+    }
+
+    public async Task<ProductDto> GetByName(string name)
+    {
+        return await _productRepository.GetByName(name);
+    }
+
+    public async Task Add(ProductCreateDto productDto)
+    {
+        var product = _mapper.Map<Product>(productDto);
+        await _unitOfWork.Repository<Product>().AddAsync(product);
+
+        // send a event
+        product.AddDomainEvent(new ProductCreatedEvent(product));
+
+        var resul = await _unitOfWork.Commit();
+    }
+
+    public async Task Delete(Guid id)
+    {
+        var product = _unitOfWork.Repository<Product>().FindOne(x => x.Id == id);
+
+        if (product is null)
+            throw new Exception("Product not found");
+
+        _unitOfWork.Repository<Product>().DeleteAsync(product);
+        await _unitOfWork.Commit();
+    }
+
+    public async Task Update(ProductUpdateDto productDto)
+    {
+        var product = _unitOfWork.Repository<Product>().FindOne(x => x.Id == productDto.Id);
+
+        if (product is null)
+            throw new Exception("Product not found");
+
+        product.Name = productDto.Name;
+        product.Price = productDto.Price;
+        product.Active = productDto.Active;
+        product.ImageUri = productDto.ImageUri;
+
+        _unitOfWork.Repository<Product>().UpdateAsync(product);
+        await _unitOfWork.Commit();
+    }
+}
+
+```
+Assuming that you have MediatR installed in your project, you can create your Handler. Here a example after i've create a Product
+
+```csharp
+public class ProductCreatedEvent : BaseEvent
+{
+    public Product Product { get;}
+    public ProductCreatedEvent(Product product)
+    {
+        Product = product;
+    }
+}
+
+public class ProductCreatedEventHandler : INotificationHandler<ProductCreatedEvent>
+{
+    public async Task Handle(ProductCreatedEvent notification, CancellationToken cancellationToken)
+    {
+        Console.WriteLine($"Product {notification.Product.Name} created at {DateTime.Now}");
+
+        await Task.CompletedTask;
     }
 }
 ```
-
-⚙️ Features
-
-Full CRUD:
-
-* AddAsync(entity) - Adds a new entity.
-* GetByIdAsync(id) - Retrieves an entity by ID.
-* GetAllAsync() - Retrieves all entities.
-* UpdateAsync(entity) - Updates an existing entity.
-* DeleteAsync(id) - Removes an entity by ID.
-* And much more..
 
 Performance:
 
@@ -123,17 +205,74 @@ Can be used with any entity class that has an identifier.
 🧩 Requirements
 
 * .NET 6+
-* PostgreSQL 12+
 
 🗂️ Package Structure
 
-Interfaces:
+## Repository Interface (`IRepository<TEntity>`)
 
-``` IPgRepository<T>: Generic repository interface. ```
+This interface provides an abstraction for a generic repository pattern, allowing operations on any entity type. Below is a description of each available method:
 
-Implementations:
+### 🔍 Querying Entities
+- **`IQueryable<TEntity> Entities`**  
+  Gets the entities of the repository. Can be used with AutoMapper's `ProjectTo` for projections.
 
-``` PgRepository<T>: Concrete implementation for PostgreSQL. ```
+- **`IQueryable<TEntity> GetAll(FindOptions? findOptions = null)`**  
+  Retrieves all entities with optional find options.
+
+- **`IEnumerable<TEntity> GetAll(Expression<Func<TEntity, bool>> predicate, FindOptions? findOptions = null)`**  
+  Retrieves all entities that match the specified predicate with optional find options.
+
+- **`IQueryable<TEntity> Find(Expression<Func<TEntity, bool>> predicate, FindOptions? findOptions = null)`**  
+  Finds all entities that match the specified predicate with optional find options.
+
+- **`TEntity FindOne(Expression<Func<TEntity, bool>> predicate, FindOptions? findOptions = null)`**  
+  Finds a single entity that matches the specified predicate with optional find options.
+
+### ⏳ Asynchronous Queries
+- **`Task<IEnumerable<TEntity>> GetAllAsync(int pageNumber, int pageSize)`**  
+  Retrieves a paginated list of entities asynchronously.
+
+- **`Task<IEnumerable<TEntity>> GetAllAsync(int pageNumber, int pageSize, params Expression<Func<TEntity, object>>[] includes)`**  
+  Retrieves a paginated list of entities asynchronously, with optional includes.
+
+- **`Task<IEnumerable<TEntity>> GetAllAsync(params Expression<Func<TEntity, object>>[] includes)`**  
+  Retrieves a list of entities asynchronously, with optional includes.
+
+- **`Task<IEnumerable<TEntity>> GetAllAsync()`**  
+  Retrieves all entities asynchronously.
+
+- **`Task<TEntity> FindAsync(Expression<Func<TEntity, bool>> predicate)`**  
+  Finds a single entity asynchronously that matches the specified predicate.
+
+### 📌 Adding Entities
+- **`Task AddAsync(TEntity entity)`**  
+  Adds a single entity to the repository asynchronously.
+
+- **`Task AddAsync(IEnumerable<TEntity> entities)`**  
+  Adds multiple entities to the repository asynchronously.
+
+### ✏️ Updating Entities
+- **`void UpdateAsync(TEntity entity)`**  
+  Updates an existing entity in the repository asynchronously.
+
+### 🗑️ Deleting Entities
+- **`void DeleteAsync(TEntity entity)`**  
+  Deletes a single entity from the repository asynchronously.
+
+- **`void DeleteAsync(Expression<Func<TEntity, bool>> predicate)`**  
+  Deletes entities that match the specified predicate asynchronously.
+
+### 🔢 Utility Methods
+- **`bool Any(Expression<Func<TEntity, bool>> predicate)`**  
+  Checks if any entities match the specified predicate.
+
+- **`int Count(Expression<Func<TEntity, bool>> predicate)`**  
+  Counts the number of entities that match the specified predicate.
+
+---
+
+This repository abstraction helps simplify database operations by providing a structured way to interact with entity data.
+
 
 🤝 Contribution
 
