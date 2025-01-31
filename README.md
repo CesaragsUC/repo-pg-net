@@ -95,11 +95,13 @@ public class ProductService : IProductService
 {
     private readonly IUnitOfWork<ProductContext> _unitOfWork;
     private readonly IProductRepository _productRepository;
-
+    private readonly IMapper _mapper;
     public ProductService(IUnitOfWork<ProductContext> unitOfWork,
+        IMapper mapper,
         IProductRepository productRepository)
     {
         _unitOfWork = unitOfWork;
+        _mapper = mapper;
         _productRepository = productRepository;
     }
 
