@@ -18,7 +18,6 @@ This approach enhances **maintainability** and **testability**, following best p
 
 You can install the package via NuGet Package Manager or the CLI:  
 
-```sh
 dotnet add package PGNet
 
 
