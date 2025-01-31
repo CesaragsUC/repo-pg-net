@@ -16,13 +16,6 @@ This approach enhances **maintainability** and **testability**, following best p
 
 ## 🚀 Installation  
 
-You can install the package via NuGet Package Manager or the CLI:  
-
-dotnet add package PGNet
-
-
-🚀 Installation
-
 You can install the package via NuGet Package Manager or the CLI:
 
 Using NuGet Package Manager:
