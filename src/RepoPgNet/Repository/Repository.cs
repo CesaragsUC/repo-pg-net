@@ -1,40 +1,39 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using RepoPgNet.Abstractions;
 using System.Linq.Expressions;
 
-namespace RepoPgNet;
+namespace RepoPgNet.Repository;
 
-public class PgRepository<TEntity> : IPgRepository<TEntity> where TEntity : class
+public class Repository<TEntity> : IRepository<TEntity> where TEntity : class
 {
     private readonly DbContext _context;
 
-    public PgRepository(DbContext context)
+    public Repository(DbContext context)
     {
         _context = context;
     }
 
+    public IQueryable<TEntity> Entities => _context.Set<TEntity>();
+
     public async Task AddAsync(TEntity entity)
     {
-        _context.Set<TEntity>().Add(entity);
-        await _context.SaveChangesAsync();
+        await _context.Set<TEntity>().AddAsync(entity);
     }
 
     public async Task AddAsync(IEnumerable<TEntity> entities)
     {
-        _context.Set<TEntity>().AddRange(entities);
-        await _context.SaveChangesAsync();
+        await _context.Set<TEntity>().AddRangeAsync(entities);
     }
 
-    public async Task DeleteAsync(TEntity entity)
+    public void DeleteAsync(TEntity entity)
     {
         _context.Set<TEntity>().Remove(entity);
-        await _context.SaveChangesAsync();
     }
 
-    public async Task DeleteAsync(Expression<Func<TEntity, bool>> predicate)
+    public void DeleteAsync(Expression<Func<TEntity, bool>> predicate)
     {
         var entities = Find(predicate);
         _context.Set<TEntity>().RemoveRange(entities);
-        await _context.SaveChangesAsync();
     }
 
     public TEntity FindOne(Expression<Func<TEntity, bool>> predicate, FindOptions? findOptions = null)
@@ -55,7 +54,7 @@ public class PgRepository<TEntity> : IPgRepository<TEntity> where TEntity : clas
 
         if (result == null)
         {
-            Console.WriteLine($"Nenhuma entidade encontrada para o predicado: {predicate}");
+            Console.WriteLine($"No entity was founded with predicated: {predicate}");
         }
 
         return result!;
@@ -79,16 +78,45 @@ public class PgRepository<TEntity> : IPgRepository<TEntity> where TEntity : clas
                              .ToListAsync();
     }
 
+    public async Task<IEnumerable<TEntity>> GetAllAsync(
+    int pageNumber,
+    int pageSize,
+    params Expression<Func<TEntity, object>>[] includes)
+    {
+        IQueryable<TEntity> query = _context.Set<TEntity>();
+
+        foreach (var include in includes)
+        {
+            query = query.Include(include);
+        }
+
+        return await query
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+    }
+
+    public async Task<IEnumerable<TEntity>> GetAllAsync(params Expression<Func<TEntity, object>>[] includes)
+    {
+        IQueryable<TEntity> query = _context.Set<TEntity>();
+
+        foreach (var include in includes)
+        {
+            query = query.Include(include);
+        }
+
+        return await query.ToListAsync();
+    }
+
     public async Task<IEnumerable<TEntity>> GetAllAsync()
     {
-       return await _context.Set<TEntity>().ToListAsync();
+        return await _context.Set<TEntity>().ToListAsync();
     }
 
 
-    public async Task UpdateAsync(TEntity entity)
+    public void UpdateAsync(TEntity entity)
     {
         _context.Set<TEntity>().Update(entity);
-        await _context.SaveChangesAsync();
     }
 
     public bool Any(Expression<Func<TEntity, bool>> predicate)

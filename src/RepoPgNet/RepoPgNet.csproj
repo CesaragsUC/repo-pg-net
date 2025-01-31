@@ -7,23 +7,13 @@
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <PackageId>RepoPgNet</PackageId>
     <Title>RepoPgNet</Title>
-    <Description>Este pacote oferece uma implementação completa de um repositório genérico para aplicações .NET com PostgreSQL, facilitando a criação, leitura, atualização e remoção (CRUD) de entidades no banco de dados.
-
-Com ele, você pode simplificar o acesso a dados usando boas práticas, abstraindo a camada de repositório e deixando sua aplicação mais limpa e desacoplada.</Description>
+    <Description>This package provides a complete implementation of a generic repository for .NET applications with PostgreSQL, facilitating the creation, reading, updating and deletion (CRUD) of entities in the database.
+With it, you can simplify data access using best practices, abstracting the repository layer and making your application cleaner and decoupled.</Description>
     <PackageProjectUrl>https://github.com/CesaragsUC/repo-pg-net</PackageProjectUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/CesaragsUC/repo-pg-net</RepositoryUrl>
-    <Version>1.1.1</Version>
-    <PackageReleaseNotes>Refatorar IPgRepository e atualizar as configurações do projeto
-
-Renomeado GetAll para GetAllEntities em IPgRepository.
-Substituição de métodos sync por equivalentes assíncronos em IPgRepository.
-Atualização de PackageId e Title em RepoPgNet.csproj para RepoPgNet.
-Adicionada propriedade Version (1.1.0) para RepoPgNet.csproj.
-Movido conteúdo de Repository.cs para novo arquivo PgRepository.cs.
-Atualização de classe PgRepository para usar métodos assíncronos.
-Adicionado método de extensão AddRepoPgNet para registro DI.
-Configuração de AddRepoPgNet para usar string de conexão PostgreSQL.</PackageReleaseNotes>
+    <Version>2.0.0</Version>
+    <PackageReleaseNotes></PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
@@ -33,6 +23,7 @@ Configuração de AddRepoPgNet para usar string de conexão PostgreSQL.</Package
     </None>
   </ItemGroup>
 	<ItemGroup>
+		<PackageReference Include="MediatR" Version="12.4.1" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.8">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
