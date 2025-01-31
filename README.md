@@ -88,7 +88,7 @@ public class Product : BaseEntity
 
 Using the Repository
 
-Example of using the generic repository in a Controller:
+Example of usage:
 
 ```csharp
 public class ProductService : IProductService
