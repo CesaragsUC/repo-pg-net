@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 
-namespace RepoPgNet;
+namespace HybridRepoNet;
 public abstract class BaseEntity : IEntity
 {
     public DateTime CreatedDate { get; set; } = DateTime.Now;

@@ -1,6 +1,6 @@
 ﻿using MediatR;
 
-namespace RepoPgNet;
+namespace HybridRepoNet;
 
 //put this in Domain layer
 public class DomainEvent : IDomainEvent

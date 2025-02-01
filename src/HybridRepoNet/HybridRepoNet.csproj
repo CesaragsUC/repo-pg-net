@@ -5,14 +5,14 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <PackageId>RepoPgNet</PackageId>
-    <Title>RepoPgNet</Title>
+    <PackageId>HybridRepoNet</PackageId>
+    <Title>HybridRepoNet</Title>
     <Description>This package provides a complete implementation of a generic repository for .NET applications with PostgreSQL, facilitating the creation, reading, updating and deletion (CRUD) of entities in the database.
 With it, you can simplify data access using best practices, abstracting the repository layer and making your application cleaner and decoupled.</Description>
     <PackageProjectUrl>https://github.com/CesaragsUC/repo-pg-net</PackageProjectUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/CesaragsUC/repo-pg-net</RepositoryUrl>
-    <Version>2.0.0</Version>
+    <Version>3.0.0</Version>
     <PackageReleaseNotes></PackageReleaseNotes>
   </PropertyGroup>
 
@@ -24,15 +24,21 @@ With it, you can simplify data access using best practices, abstracting the repo
   </ItemGroup>
 	<ItemGroup>
 		<PackageReference Include="MediatR" Version="12.4.1" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.8">
+		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.1" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Abstractions" Version="9.0.1" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Analyzers" Version="9.0.1" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.1">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
-		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.8">
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="9.0.1" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.1" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.1">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
-		<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.8" />
+		<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.3" />
 		<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL.Design" Version="1.1.0" />
+		<PackageReference Include="AutoMapper" Version="13.0.1" />
 	</ItemGroup>
 </Project>

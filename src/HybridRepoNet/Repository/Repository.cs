@@ -1,8 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using RepoPgNet.Abstractions;
+using HybridRepoNet.Abstractions;
 using System.Linq.Expressions;
 
-namespace RepoPgNet.Repository;
+namespace HybridRepoNet.Repository;
 
 public class Repository<TEntity> : IRepository<TEntity> where TEntity : class
 {

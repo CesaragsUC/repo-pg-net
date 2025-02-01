@@ -2,18 +2,30 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using RepoPgNet.Abstractions;
-using RepoPgNet.Repository;
+using HybridRepoNet.Abstractions;
+using HybridRepoNet.Repository;
 
-namespace RepoPgNet.Configurations;
+namespace HybridRepoNet.Configurations;
 
 public static class ServiceCollectionExtensions
 {
-    public static void AddRepoPgNet<TContext>(this IServiceCollection services, IConfiguration configuration)
+    public static void AddRepoPgNet<TContext>(this IServiceCollection services, IConfiguration configuration, string provider)
     where TContext : DbContext
     {
-        services.AddDbContext<TContext>(options =>
-            options.UseNpgsql(configuration.GetConnectionString("PostgresConnection")));
+        if (provider.Equals("PostgreSQL", StringComparison.OrdinalIgnoreCase))
+        {
+            services.AddDbContext<TContext>(options =>
+                options.UseNpgsql(configuration.GetConnectionString("PostgresConnection")));
+        }
+        else if (provider.Equals("SQLServer", StringComparison.OrdinalIgnoreCase))
+        {
+            services.AddDbContext<TContext>(options =>
+                options.UseSqlServer(configuration.GetConnectionString("SqlConnection")));
+        }
+        else
+        {
+            throw new ArgumentException($"Provider {provider} not supported");
+        }
 
         services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
         services.AddScoped(typeof(IUnitOfWork<>), typeof(UnitOfWork<>));

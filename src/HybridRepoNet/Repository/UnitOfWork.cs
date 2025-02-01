@@ -1,8 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using RepoPgNet.Abstractions;
+using HybridRepoNet.Abstractions;
 using System.Collections;
 
-namespace RepoPgNet.Repository;
+namespace HybridRepoNet.Repository;
 
 public class UnitOfWork<TContext> : IUnitOfWork<TContext> where TContext : DbContext
 {

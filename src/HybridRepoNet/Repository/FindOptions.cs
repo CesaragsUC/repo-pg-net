@@ -1,4 +1,4 @@
-﻿namespace RepoPgNet.Repository;
+﻿namespace HybridRepoNet.Repository;
 
 public class FindOptions
 {

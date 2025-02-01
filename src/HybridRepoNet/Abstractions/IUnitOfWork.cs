@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 
-namespace RepoPgNet.Abstractions;
+namespace HybridRepoNet.Abstractions;
 
 public interface IUnitOfWork<TContext> : IDisposable where TContext : DbContext
 {

@@ -1,5 +1,5 @@
 ﻿using MediatR;
-namespace RepoPgNet;
+namespace HybridRepoNet;
 
 public abstract class BaseEvent : INotification
 {

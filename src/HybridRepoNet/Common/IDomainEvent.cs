@@ -1,4 +1,4 @@
-﻿namespace RepoPgNet;
+﻿namespace HybridRepoNet;
 
 // put in domain layer
 public interface IDomainEvent
