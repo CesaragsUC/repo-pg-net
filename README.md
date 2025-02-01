@@ -1,28 +1,21 @@
 
-# 📦 PGNet - A PostgreSQL Repository for .NET  
-A generic repository with a **Unit of Work** pattern and domain event handling for PostgreSQL using .NET.
+# 📦 HybridRepoNet  - A Hybrid Repository for .NET  
+A generic repository with a **Unit of Work** pattern and domain event handling for **PostgreSQL** and **Sql Server** using .NET.
 
 ## ✨ Description  
 
-**PGNet** is a robust and extensible repository implementation for .NET applications using **PostgreSQL**. It simplifies **Create, Read, Update, and Delete (CRUD)** operations while maintaining a **clean architecture** through the **Unit of Work (UoW) pattern** and **Domain Events**.
+**HybridRepoNet** is a robust and extensible repository implementation for .NET applications using **PostgreSQL** and **Sql Server**. It simplifies **Create, Read, Update, and Delete (CRUD)** operations while maintaining a **clean architecture** through the **Unit of Work (UoW) pattern** and **Domain Events**.
 
 With this package, you can:  
 - Abstract the data access layer using the **Repository Pattern**.  
 - Manage transactions efficiently with **Unit of Work**.  
 - Automatically dispatch **Domain Events** on entity changes (e.g., create, update, delete).  
-- Keep your code **clean, decoupled, and scalable**.  
+- Keep your code **clean, decoupled, and scalable**.
+- You can you PostgreSQL ans Sql Server at same time in your aplication.
 
 This approach enhances **maintainability** and **testability**, following best practices in **DDD (Domain-Driven Design)**.  
 
 ## 🚀 Installation  
-
-You can install the package via NuGet Package Manager or the CLI:  
-
-```sh
-dotnet add package PGNet
-
-
-🚀 Installation
 
 You can install the package via NuGet Package Manager or the CLI:
 
@@ -34,7 +27,8 @@ Using NuGet Package Manager:
 ```json
 {
   "ConnectionStrings": {
-    "PostgresConnection": "Host=localhost;Database=yourDB;Username=postgres;Password=yourpassword;"
+    "PostgresConnection": "Host=localhost;Database=yourDB;Username=postgres;Password=yourpassword;",
+    "SqlConnection": "Server=(localdb)\\mssqllocaldb;Database=Cars;Trusted_Connection=True;MultipleActiveResultSets=true"
   }
 }
 ```
@@ -46,12 +40,22 @@ using Microsoft.EntityFrameworkCore;
 
 namespace YourNamespace
 {
-    public class ProductPgDbContext : DbContext
+    public class ProductPostgreSqlContext : DbContext
     {
         public ProductPgDbContext(DbContextOptions<ProductPgDbContext> options) : base(options) { }
 
         // Add DbSets for your entities
         public DbSet<Product> Products { get; set; }
+    }
+}
+namespace YourNamespace
+{
+    public class CarSqlServerContext : DbContext
+    {
+        public CarSqlServerContext(DbContextOptions<CarSqlServerContext> options) : base(options) { }
+
+        // Add DbSets for your entities
+        public DbSet<Car> Cars { get; set; }
     }
 }
 ```
@@ -65,7 +69,8 @@ using YourNamespace;
 var builder = WebApplication.CreateBuilder(args);
 
 // Registering the repository and configuring the DbContext
-builder.Services.AddRepoPgNet<ProductPgDbContext>(builder.Configuration);
+builder.Services.AddRepoPgNet<ProductPostgreSqlContext>(builder.Configuration, DbType.PostgreSQL);
+builder.Services.AddRepoPgNet<CarSqlServerContext>(builder.Configuration, DbType.SQLServer);
 
 services.AddMediatR(cfg => {
  //Register MediatR handlers
@@ -96,7 +101,7 @@ public class Product : BaseEntity
 
 Using the Repository
 
-Example of using the generic repository in a Controller:
+Example of usage:
 
 ```csharp
 public class ProductService : IProductService
@@ -171,7 +176,9 @@ public class ProductService : IProductService
 }
 
 ```
-Assuming that you have MediatR installed in your project, you can create your Handler. Here a example after i've create a Product
+
+## ✨ Using Domain Events  
+Assuming that you have MediatR installed in your project, you can create your Handler for a created Product. Here a example
 
 ```csharp
 public class ProductCreatedEvent : BaseEvent
@@ -196,7 +203,7 @@ public class ProductCreatedEventHandler : INotificationHandler<ProductCreatedEve
 
 Performance:
 
-Efficient use of PostgreSQL database connections.
+Efficient use of database connections.
 
 Generic:
 
