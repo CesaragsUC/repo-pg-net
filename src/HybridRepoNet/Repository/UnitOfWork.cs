@@ -4,17 +4,13 @@ using System.Collections;
 
 namespace HybridRepoNet.Repository;
 
-public class UnitOfWork<TContext> : IUnitOfWork<TContext> where TContext : DbContext
+public class UnitOfWork<TContext>(TContext dbContext, IDomainEvent dispatcher) 
+    : IUnitOfWork<TContext> where TContext : DbContext
 {
-    private readonly TContext _dbContext;
-    private Hashtable _repositories;
+    private readonly TContext _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
+    private Hashtable? _repositories;
     private bool _disposed;
-    private readonly IDomainEvent _dispatcher;
-    public UnitOfWork(TContext dbContext, IDomainEvent dispatcher)
-    {
-        _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
-        _dispatcher = dispatcher;
-    }
+    private readonly IDomainEvent _dispatcher = dispatcher;
 
     public IRepository<TEntity> Repository<TEntity>() where TEntity : class, new()
     {
@@ -31,7 +27,7 @@ public class UnitOfWork<TContext> : IUnitOfWork<TContext> where TContext : DbCon
             _repositories.Add(type, repositoryInstance);
         }
 
-        return (IRepository<TEntity>)_repositories[type];
+        return (IRepository<TEntity>)_repositories[type]!;
     }
 
     public Task Rollback()
@@ -44,14 +40,15 @@ public class UnitOfWork<TContext> : IUnitOfWork<TContext> where TContext : DbCon
     {
         bool result = await _dbContext.SaveChangesAsync() > 0;
 
-        if (_dispatcher == null) return result;
+        if (_dispatcher is not null && result)
+        {
+            var entitiesWithEvents = _dbContext.ChangeTracker.Entries<BaseEntity>()
+           .Select(e => e.Entity)
+           .Where(e => e.DomainEvents.Any())
+           .ToArray();
 
-        var entitiesWithEvents = _dbContext.ChangeTracker.Entries<BaseEntity>()
-        .Select(e => e.Entity)
-        .Where(e => e.DomainEvents.Any())
-        .ToArray();
-
-        await _dispatcher.DispatchAndClearEvents(entitiesWithEvents);
+            await _dispatcher.DispatchAndClearEvents(entitiesWithEvents);
+        }
 
         return result;
     }

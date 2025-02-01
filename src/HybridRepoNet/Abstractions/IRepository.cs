@@ -1,6 +1,5 @@
 ﻿using HybridRepoNet.Repository;
 using System.Linq.Expressions;
-using System.Threading.Tasks;
 
 namespace HybridRepoNet.Abstractions;
 
@@ -14,12 +13,12 @@ public interface IRepository<TEntity> where TEntity : class
     /// <summary>
     /// Retrieves all entities with optional find options.
     /// </summary>
-    IQueryable<TEntity> GetAll(FindOptions? findOptions = null);
+    IQueryable<TEntity> GetAllQueryableAsync(FindOptions? findOptions = null);
 
     /// <summary>
     /// Retrieves all entities that match the specified predicate with optional find options.
     /// </summary>
-    IEnumerable<TEntity> GetAll(Expression<Func<TEntity, bool>> predicate, FindOptions? findOptions = null);
+    IEnumerable<TEntity> GetAllAsync(Expression<Func<TEntity, bool>> predicate, FindOptions? findOptions = null);
 
     /// <summary>
     /// Asynchronously retrieves a paginated list of entities.

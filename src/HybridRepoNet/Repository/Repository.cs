@@ -60,14 +60,14 @@ public class Repository<TEntity> : IRepository<TEntity> where TEntity : class
         return result!;
     }
 
-    public IEnumerable<TEntity> GetAll(Expression<Func<TEntity, bool>> predicate, FindOptions? findOptions = null)
-    {
-        return Get(findOptions).Where(predicate);
-    }
-
-    public IQueryable<TEntity> GetAll(FindOptions? findOptions = null)
+    public IQueryable<TEntity> GetAllQueryableAsync(FindOptions? findOptions = null)
     {
         return Get(findOptions);
+    }
+
+    public IEnumerable<TEntity> GetAllAsync(Expression<Func<TEntity, bool>> predicate, FindOptions? findOptions = null)
+    {
+        return Get(findOptions).Where(predicate);
     }
 
     public async Task<IEnumerable<TEntity>> GetAllAsync(int pageNumber, int pageSize)
@@ -76,6 +76,11 @@ public class Repository<TEntity> : IRepository<TEntity> where TEntity : class
                              .Skip((pageNumber - 1) * pageSize)
                              .Take(pageSize)
                              .ToListAsync();
+    }
+
+    public async Task<IEnumerable<TEntity>> GetAllAsync()
+    {
+        return await _context.Set<TEntity>().ToListAsync();
     }
 
     public async Task<IEnumerable<TEntity>> GetAllAsync(
@@ -107,12 +112,6 @@ public class Repository<TEntity> : IRepository<TEntity> where TEntity : class
 
         return await query.ToListAsync();
     }
-
-    public async Task<IEnumerable<TEntity>> GetAllAsync()
-    {
-        return await _context.Set<TEntity>().ToListAsync();
-    }
-
 
     public void UpdateAsync(TEntity entity)
     {

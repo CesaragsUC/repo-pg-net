@@ -6,7 +6,7 @@ public abstract class BaseEntity : IEntity
     public DateTime CreatedDate { get; set; } = DateTime.Now;
     public DateTime? UpdatedDate { get; set; }
 
-    public BaseEntity()
+    protected BaseEntity()
     {
         Id = Guid.NewGuid();
     }
@@ -16,9 +16,10 @@ public abstract class BaseEntity : IEntity
 
     public Guid Id { get; set; }
 
+    public bool IsDeleted { get; set; }
+
     [NotMapped]
     public IReadOnlyCollection<BaseEvent> DomainEvents => _domainEvents.AsReadOnly();
-
     public void AddDomainEvent(BaseEvent domainEvent) => _domainEvents.Add(domainEvent);
     public void RemoveDomainEvent(BaseEvent domainEvent) => _domainEvents.Remove(domainEvent);
     public void ClearDomainEvents() => _domainEvents.Clear();
