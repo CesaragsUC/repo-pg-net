@@ -158,7 +158,7 @@ public class ProductService : IProductService
         product.Active = false;
         product.IsDeleted = true;
 
-        //Using Soft Delete update to delete instead of hard delete
+        //Using Soft Delete. Update flag to deleted instead of hard delete.
         _unitOfWork.Repository<Product>().UpdateAsync(product);
 
         product.AddDomainEvent(new ProductDeletedEvent(product));
