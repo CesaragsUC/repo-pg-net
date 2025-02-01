@@ -12,6 +12,7 @@ With this package, you can:
 - Automatically dispatch **Domain Events** on entity changes (e.g., create, update, delete).  
 - Keep your code **clean, decoupled, and scalable**.
 - You can you PostgreSQL ans Sql Server at same time in your aplication.
+- Soft Delete
 
 This approach enhances **maintainability** and **testability**, following best practices in **DDD (Domain-Driven Design)**.  
 
