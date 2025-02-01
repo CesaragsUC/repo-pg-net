@@ -150,12 +150,19 @@ public class ProductService : IProductService
 
     public async Task Delete(Guid id)
     {
-        var product = _unitOfWork.Repository<Product>().FindOne(x => x.Id == id);
+        var product = _unitOfWork.Repository<Product>().FindOne(x => x.Id == id && !x.IsDeleted);
 
         if (product is null)
-            throw new Exception("Product not found");
+            throw new Exception("Product not found or deleted");
 
-        _unitOfWork.Repository<Product>().DeleteAsync(product);
+        product.Active = false;
+        product.IsDeleted = true;
+
+        //Using Soft Delete update to delete instead of hard delete
+        _unitOfWork.Repository<Product>().UpdateAsync(product);
+
+        product.AddDomainEvent(new ProductDeletedEvent(product));
+
         await _unitOfWork.Commit();
     }
 
@@ -172,6 +179,7 @@ public class ProductService : IProductService
         product.ImageUri = productDto.ImageUri;
 
         _unitOfWork.Repository<Product>().UpdateAsync(product);
+        product.AddDomainEvent(new ProductUpdatedEvent(product));
         await _unitOfWork.Commit();
     }
 }
