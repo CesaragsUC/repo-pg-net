@@ -70,8 +70,8 @@ using YourNamespace;
 var builder = WebApplication.CreateBuilder(args);
 
 // Registering the repository and configuring the DbContext
-builder.Services.AddRepoPgNet<ProductPostgreSqlContext>(builder.Configuration, DbType.PostgreSQL);
-builder.Services.AddRepoPgNet<CarSqlServerContext>(builder.Configuration, DbType.SQLServer);
+builder.Services.AddHybridRepoNet<ProductPostgreSqlContext>(builder.Configuration, DbType.PostgreSQL);
+builder.Services.AddHybridRepoNet<CarSqlServerContext>(builder.Configuration, DbType.SQLServer);
 
 services.AddMediatR(cfg => {
  //Register MediatR handlers
