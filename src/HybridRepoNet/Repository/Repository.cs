@@ -118,6 +118,38 @@ public class Repository<TEntity> : IRepository<TEntity> where TEntity : class
         _context.Set<TEntity>().Update(entity);
     }
 
+    public void SoftDeleteAsync(TEntity entity)
+    {
+        if (entity is BaseEntity baseEntity)
+        {
+            baseEntity.IsDeleted = true;
+            baseEntity.UpdatedDate = DateTime.UtcNow;
+            _context.Set<TEntity>().Update(entity);
+        }
+        else
+        {
+            throw new InvalidOperationException("Entity does not support soft delete.");
+        }
+    }
+
+    public async Task SoftDeleteAsync(Expression<Func<TEntity, bool>> predicate)
+    {
+        var entities = await _context.Set<TEntity>()
+            .Where(predicate)
+            .ToListAsync();
+
+        foreach (var entity in entities)
+        {
+            if (entity is BaseEntity baseEntity)
+            {
+                baseEntity.IsDeleted = true;
+                baseEntity.UpdatedDate = DateTime.UtcNow;
+            }
+        }
+
+        _context.Set<TEntity>().UpdateRange(entities);
+    }
+
     public bool Any(Expression<Func<TEntity, bool>> predicate)
     {
         return _context.Set<TEntity>().Any(predicate);

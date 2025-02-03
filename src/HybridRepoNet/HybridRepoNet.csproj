@@ -12,7 +12,7 @@ With it, you can simplify data access using best practices, abstracting the repo
     <PackageProjectUrl>https://github.com/CesaragsUC/repo-pg-net</PackageProjectUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/CesaragsUC/repo-pg-net</RepositoryUrl>
-    <Version>3.0.0</Version>
+    <Version>3.0.3</Version>
     <PackageReleaseNotes></PackageReleaseNotes>
   </PropertyGroup>
 

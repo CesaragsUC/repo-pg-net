@@ -9,7 +9,7 @@ namespace HybridRepoNet.Configurations;
 
 public static class ServiceCollectionExtensions
 {
-    public static void AddRepoPgNet<TContext>(this IServiceCollection services, IConfiguration configuration, string provider)
+    public static void AddHybridRepoNet<TContext>(this IServiceCollection services, IConfiguration configuration, string provider)
     where TContext : DbContext
     {
         if (provider.Equals("PostgreSQL", StringComparison.OrdinalIgnoreCase))
@@ -34,9 +34,6 @@ public static class ServiceCollectionExtensions
         .AddTransient<IMediator, Mediator>()
         .AddTransient<IDomainEvent, DomainEvent>();
 
-        //This line tells the container that whenever a dependency on DbContext is requested, it should provide the following: TContext(MyDbContext).
-        //So, the PgRepository <TEntity> that depends on DbContext can now receive MyDbContext,
-        //because the container knows that DbContext should be resolved as MyDbContext
         services.AddScoped<DbContext, TContext>();
 
     }
