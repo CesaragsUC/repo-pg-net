@@ -12,6 +12,7 @@ With this package, you can:
 - Automatically dispatch **Domain Events** on entity changes (e.g., create, update, delete).  
 - Keep your code **clean, decoupled, and scalable**.
 - You can you PostgreSQL ans Sql Server at same time in your aplication.
+- Soft Delete
 
 This approach enhances **maintainability** and **testability**, following best practices in **DDD (Domain-Driven Design)**.  
 
@@ -69,8 +70,8 @@ using YourNamespace;
 var builder = WebApplication.CreateBuilder(args);
 
 // Registering the repository and configuring the DbContext
-builder.Services.AddRepoPgNet<ProductPostgreSqlContext>(builder.Configuration, DbType.PostgreSQL);
-builder.Services.AddRepoPgNet<CarSqlServerContext>(builder.Configuration, DbType.SQLServer);
+builder.Services.AddHybridRepoNet<ProductPostgreSqlContext>(builder.Configuration, DbType.PostgreSQL);
+builder.Services.AddHybridRepoNet<CarSqlServerContext>(builder.Configuration, DbType.SQLServer);
 
 services.AddMediatR(cfg => {
  //Register MediatR handlers
@@ -149,12 +150,18 @@ public class ProductService : IProductService
 
     public async Task Delete(Guid id)
     {
-        var product = _unitOfWork.Repository<Product>().FindOne(x => x.Id == id);
+        var product = _unitOfWork.Repository<Product>().FindOne(x => x.Id == id && !x.IsDeleted);
 
         if (product is null)
-            throw new Exception("Product not found");
+            throw new Exception("Product not found or deleted");
 
-        _unitOfWork.Repository<Product>().DeleteAsync(product);
+        product.Active = false;
+
+        //Using Soft Delete update to delete instead of hard delete
+        _unitOfWork.Repository<Product>().SoftDeleteAsync(product);
+
+        product.AddDomainEvent(new ProductDeletedEvent(product));
+
         await _unitOfWork.Commit();
     }
 
@@ -171,6 +178,7 @@ public class ProductService : IProductService
         product.ImageUri = productDto.ImageUri;
 
         _unitOfWork.Repository<Product>().UpdateAsync(product);
+        product.AddDomainEvent(new ProductUpdatedEvent(product));
         await _unitOfWork.Commit();
     }
 }
@@ -199,6 +207,29 @@ public class ProductCreatedEventHandler : INotificationHandler<ProductCreatedEve
         await Task.CompletedTask;
     }
 }
+```
+## ⚠ Important Notice About Delete Events
+
+> The default `Delete` operation in Entity Framework does **not trigger domain events** because deleted entities are **not tracked in the `ChangeTracker` after removal**.  
+>
+> **To ensure that domain events are properly dispatched, you must use the Soft Delete approach provided in this repository.**  
+>
+> When using `SoftDeleteAsync`, the entity remains in the `ChangeTracker` as `Modified`, allowing event dispatching via the `SaveChangesAsync()` method.  
+>
+> **If you use `DeleteAsync`, domain events will not be triggered!** 🚨  
+
+---
+
+### ❌ This will NOT trigger domain events:
+```csharp
+await _repository.DeleteAsync(product);
+_unitOfWork.Repository<Product>().DeleteAsync(product); // No event will be fired!
+```
+
+### ✅ This will NOT trigger domain events:
+```csharp
+await _repository.SoftDeleteAsync(product);
+_unitOfWork.Repository<Product>().SoftDeleteAsync(product); // Events will be fired!
 ```
 
 Performance:
@@ -268,6 +299,14 @@ This interface provides an abstraction for a generic repository pattern, allowin
 
 - **`void DeleteAsync(Expression<Func<TEntity, bool>> predicate)`**  
   Deletes entities that match the specified predicate asynchronously.
+  
+### 🗑️ Soft Deleting Entities
+- **`Task SoftDeleteAsync(Expression<Func<TEntity, bool>> predicate)`**
+- **`void SoftDeleteAsync(TEntity entity)`**
+  
+Soft Delete is a technique that **marks an entity as deleted instead of physically removing it from the database**.  
+This allows data recovery and audit tracking.
+This repository abstraction helps simplify database operations by providing a structured way to interact with entity data.
 
 ### 🔢 Utility Methods
 - **`bool Any(Expression<Func<TEntity, bool>> predicate)`**  
@@ -277,8 +316,6 @@ This interface provides an abstraction for a generic repository pattern, allowin
   Counts the number of entities that match the specified predicate.
 
 ---
-
-This repository abstraction helps simplify database operations by providing a structured way to interact with entity data.
 
 
 🤝 Contribution
