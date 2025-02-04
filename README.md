@@ -226,7 +226,7 @@ await _repository.DeleteAsync(product);
 _unitOfWork.Repository<Product>().DeleteAsync(product); // No event will be fired!
 ```
 
-### ✅ This will NOT trigger domain events:
+### ✅ This will trigger domain events:
 ```csharp
 await _repository.SoftDeleteAsync(product);
 _unitOfWork.Repository<Product>().SoftDeleteAsync(product); // Events will be fired!
