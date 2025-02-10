@@ -115,7 +115,11 @@ public class Repository<TEntity> : IRepository<TEntity> where TEntity : class
 
     public void UpdateAsync(TEntity entity)
     {
-        _context.Set<TEntity>().Update(entity);
+        if (entity is BaseEntity baseEntity)
+        {
+            baseEntity.UpdatedDate = DateTime.UtcNow;
+            _context.Set<TEntity>().Update(entity);
+        }
     }
 
     public void SoftDeleteAsync(TEntity entity)
