@@ -21,7 +21,7 @@ This approach enhances **maintainability** and **testability**, following best p
 You can install the package via NuGet Package Manager or the CLI:
 
 Using NuGet Package Manager:
-<pre> Install-Package RepoPgNet </pre>
+<pre> Install-Package HybridRepoNet </pre>
 
 🛠️ Configuration
 
@@ -226,7 +226,7 @@ await _repository.DeleteAsync(product);
 _unitOfWork.Repository<Product>().DeleteAsync(product); // No event will be fired!
 ```
 
-### ✅ This will NOT trigger domain events:
+### ✅ This will trigger domain events:
 ```csharp
 await _repository.SoftDeleteAsync(product);
 _unitOfWork.Repository<Product>().SoftDeleteAsync(product); // Events will be fired!
