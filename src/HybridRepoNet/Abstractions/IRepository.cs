@@ -94,6 +94,13 @@ public interface IRepository<TEntity> where TEntity : class
     /// </summary>
     Task<TEntity> FindAsync(Expression<Func<TEntity, bool>> predicate);
 
+    ///<summary>
+    /// Asynchronously finds a single entity that matches the specified predicate with optional includes.
+    /// </summary>
+    Task<TEntity> FindAsync(
+        Expression<Func<TEntity, bool>> wherePredicate,
+        params Expression<Func<TEntity, object>>[] includes);
+
     /// <summary>
     /// Soft deletes an entity. This will set the IsDeleted flag to true, instead of actually deleting the entity.
     /// </summary>

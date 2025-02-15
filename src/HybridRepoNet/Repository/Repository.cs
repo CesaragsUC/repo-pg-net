@@ -59,6 +59,20 @@ public class Repository<TEntity> : IRepository<TEntity> where TEntity : class
 
         return result!;
     }
+    public async Task<TEntity> FindAsync(
+        Expression<Func<TEntity, bool>> wherePredicate,
+        params Expression<Func<TEntity, object>>[] includes)
+    {
+        IQueryable<TEntity> query = _context.Set<TEntity>();
+
+        foreach (var include in includes)
+        {
+            query = query.Include(include);
+        }
+
+        return await query.FirstOrDefaultAsync(wherePredicate);
+    }
+
 
     public IQueryable<TEntity> GetAllQueryableAsync(FindOptions? findOptions = null)
     {
