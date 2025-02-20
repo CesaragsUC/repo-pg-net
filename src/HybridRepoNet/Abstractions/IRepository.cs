@@ -67,17 +67,17 @@ public interface IRepository<TEntity> where TEntity : class
     /// <summary>
     /// Asynchronously updates an existing entity in the repository.
     /// </summary>
-    void UpdateAsync(TEntity entity);
+    void Update(TEntity entity);
 
     /// <summary>
     /// Asynchronously deletes a single entity from the repository.
     /// </summary>
-    void DeleteAsync(TEntity entity);
+    void Delete(TEntity entity);
 
     /// <summary>
     /// Asynchronously deletes entities that match the specified predicate from the repository.
     /// </summary>
-    void DeleteAsync(Expression<Func<TEntity, bool>> predicate);
+    void Delete(Expression<Func<TEntity, bool>> predicate);
 
     /// <summary>
     /// Checks if any entities match the specified predicate.
@@ -105,7 +105,7 @@ public interface IRepository<TEntity> where TEntity : class
     /// Soft deletes an entity. This will set the IsDeleted flag to true, instead of actually deleting the entity.
     /// </summary>
     /// <param name="entity"></param>
-    void SoftDeleteAsync(TEntity entity);
+    void SoftDelete(TEntity entity);
 
     /// <summary>
     /// Soft deletes an entity that matches the specified predicate. This will set the IsDeleted flag to true, instead of actually deleting the entity.

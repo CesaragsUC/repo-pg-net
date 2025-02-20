@@ -25,12 +25,12 @@ public class Repository<TEntity> : IRepository<TEntity> where TEntity : class
         await _context.Set<TEntity>().AddRangeAsync(entities);
     }
 
-    public void DeleteAsync(TEntity entity)
+    public void Delete(TEntity entity)
     {
         _context.Set<TEntity>().Remove(entity);
     }
 
-    public void DeleteAsync(Expression<Func<TEntity, bool>> predicate)
+    public void Delete(Expression<Func<TEntity, bool>> predicate)
     {
         var entities = Find(predicate);
         _context.Set<TEntity>().RemoveRange(entities);
@@ -127,27 +127,27 @@ public class Repository<TEntity> : IRepository<TEntity> where TEntity : class
         return await query.ToListAsync();
     }
 
-    public void UpdateAsync(TEntity entity)
+    public void Update(TEntity entity)
     {
         if (entity is BaseEntity baseEntity)
         {
             baseEntity.UpdatedDate = DateTime.UtcNow;
             _context.Set<TEntity>().Update(entity);
         }
+
+        _context.Set<TEntity>().Update(entity);
     }
 
-    public void SoftDeleteAsync(TEntity entity)
+    public void SoftDelete(TEntity entity)
     {
         if (entity is BaseEntity baseEntity)
         {
             baseEntity.IsDeleted = true;
             baseEntity.UpdatedDate = DateTime.UtcNow;
-            _context.Set<TEntity>().Update(entity);
+            
         }
-        else
-        {
-            throw new InvalidOperationException("Entity does not support soft delete.");
-        }
+
+        _context.Set<TEntity>().Update(entity);
     }
 
     public async Task SoftDeleteAsync(Expression<Func<TEntity, bool>> predicate)

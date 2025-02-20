@@ -11,12 +11,17 @@
     <PackageProjectUrl>https://github.com/CesaragsUC/repo-pg-net</PackageProjectUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/CesaragsUC/repo-pg-net</RepositoryUrl>
-    <Version>3.0.5</Version>
+    <Version>3.0.7</Version>
     <PackageReleaseNotes></PackageReleaseNotes>
+    <PackageIcon>icone-repo.png</PackageIcon>
   </PropertyGroup>
 
   <ItemGroup>
     <None Include="..\..\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+    <None Include="C:\Users\cesar\Downloads\icone-repo.png">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>
