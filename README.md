@@ -7,6 +7,7 @@ A generic repository with a **Unit of Work** pattern and domain event handling f
 **HybridRepoNet** is a robust and extensible repository implementation for .NET applications using **PostgreSQL** and **Sql Server**. It simplifies **Create, Read, Update, and Delete (CRUD)** operations while maintaining a **clean architecture** through the **Unit of Work (UoW) pattern** and **Domain Events**.
 
 With this package, you can:  
+- Use Polly Retry polices for better resilience.
 - Abstract the data access layer using the **Repository Pattern**.  
 - Manage transactions efficiently with **Unit of Work**.  
 - Automatically dispatch **Domain Events** on entity changes (e.g., create, update, delete).  
@@ -72,6 +73,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Registering the repository and configuring the DbContext
 builder.Services.AddHybridRepoNet<ProductPostgreSqlContext>(builder.Configuration, DbType.PostgreSQL);
 builder.Services.AddHybridRepoNet<CarSqlServerContext>(builder.Configuration, DbType.SQLServer);
+builder.Services.AddHostedService<HybridRepoHealthCheckService<ProductDbContext>>(); //Optional if you want use Polly for retry policy
 
 services.AddMediatR(cfg => {
  //Register MediatR handlers
