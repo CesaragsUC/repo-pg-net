@@ -1,9 +1,9 @@
-﻿using MediatR;
+﻿using HybridRepoNet.Abstractions;
+using HybridRepoNet.Repository;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using HybridRepoNet.Abstractions;
-using HybridRepoNet.Repository;
 
 namespace HybridRepoNet.Configurations;
 
@@ -15,12 +15,12 @@ public static class ServiceCollectionExtensions
         if (provider.Equals("PostgreSQL", StringComparison.OrdinalIgnoreCase))
         {
             services.AddDbContext<TContext>(options =>
-                options.UseNpgsql(configuration.GetConnectionString("PostgresConnection")));
+                options.UseNpgsql(configuration.GetConnectionString("PostgresConnection"), npgsqlOptions => npgsqlOptions.EnableRetryOnFailure(5)));
         }
         else if (provider.Equals("SQLServer", StringComparison.OrdinalIgnoreCase))
         {
             services.AddDbContext<TContext>(options =>
-                options.UseSqlServer(configuration.GetConnectionString("SqlConnection")));
+                options.UseSqlServer(configuration.GetConnectionString("SqlConnection"), sqlOptions => sqlOptions.EnableRetryOnFailure(5)));
         }
         else
         {
