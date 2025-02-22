@@ -70,10 +70,13 @@ using YourNamespace;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Registering the repository and configuring the DbContext
+// Registering the repository and configuring the DbContext. You can Use PG and Sql server at same time in your project.
 builder.Services.AddHybridRepoNet<ProductPostgreSqlContext>(builder.Configuration, DbType.PostgreSQL);
 builder.Services.AddHybridRepoNet<CarSqlServerContext>(builder.Configuration, DbType.SQLServer);
-builder.Services.AddHostedService<HybridRepoHealthCheckService<ProductDbContext>>(); //Optional if you want use Polly for retry policy
+
+// A Alternative: Instead of the default register above, if you want to register the services with (Polly Retry)  for better resilience.
+//builder.Services.AddHybridRepoNet<ProductDbContext>(configuration, DbType.PostgreSQL,(int)HealthCheck.Active);
+//builder.Services.AddHybridRepoNet<CarSqlServerContext>(builder.Configuration, DbType.SQLServer,(int)HealthCheck.Active);
 
 services.AddMediatR(cfg => {
  //Register MediatR handlers
