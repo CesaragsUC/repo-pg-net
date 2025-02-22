@@ -1,5 +1,6 @@
 ﻿using HybridRepoNet.Abstractions;
 using HybridRepoNet.Repository;
+using HybridRepoNet.Services;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -9,7 +10,10 @@ namespace HybridRepoNet.Configurations;
 
 public static class ServiceCollectionExtensions
 {
-    public static void AddHybridRepoNet<TContext>(this IServiceCollection services, IConfiguration configuration, string provider)
+    public static void AddHybridRepoNet<TContext>(this IServiceCollection services,
+        IConfiguration configuration,
+        string provider,
+        int? healthCheck = null)
     where TContext : DbContext
     {
         if (provider.Equals("PostgreSQL", StringComparison.OrdinalIgnoreCase))
@@ -35,6 +39,12 @@ public static class ServiceCollectionExtensions
         .AddTransient<IDomainEvent, DomainEvent>();
 
         services.AddScoped<DbContext, TContext>();
+
+        // Add health check service if required
+        if (healthCheck.HasValue && healthCheck.Value == (int)HealthCheck.Active)
+        {
+            services.AddHostedService<HybridRepoHealthCheckService<TContext>>();
+        }
 
     }
 }
